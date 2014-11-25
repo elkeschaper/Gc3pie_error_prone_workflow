@@ -276,7 +276,7 @@ class DataPreparationParallelFlow(ParallelTaskCollection):
         gc3libs.log.info("\t\tDataPreparationParallelFlow.terminated")
 
 
-class SeqPreparationSequential(SequentialTaskCollection):
+class SeqPreparationSequential(StopOnError, SequentialTaskCollection):
     def __init__(self, **kwargs):
 
         self.joke = 'hard_coded_joke'
@@ -334,7 +334,7 @@ class TRDwiseParallelFlow(ParallelTaskCollection):
         gc3libs.log.info("\t\tTRDwiseParallelFlow.terminated")
 
 
-class TRDSequential(SequentialTaskCollection):
+class TRDSequential(StopOnError, SequentialTaskCollection):
     def __init__(self, s, name, type, **kwargs):
 
         self.s = s
