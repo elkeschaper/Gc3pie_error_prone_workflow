@@ -22,10 +22,10 @@ config = configobj.ConfigObj(config_file, stringify=True)
 ######################## Basic Applications/Tasks Templates ##############################
 
 class MyApplication(Application):
-   """
-   Basic template method pattern  `Application`:class: Initialise Application generically,
-   and check for successful running generically.
-   """
+    """
+    Basic template method pattern  `Application`:class: Initialise Application generically,
+    and check for successful running generically.
+    """
     def __init__(self, name, **kwargs):
 
         gc3libs.log.info("Initialising {}".format(self.__class__.__name__))
@@ -84,16 +84,16 @@ class MyApplication(Application):
 
 
 class StopOnError(object):
-   """
-   Mix-in class to make a `SequentialTaskCollection`:class: turn to STOPPED
-   state as soon as one of the tasks fail.
-   """
-   def next(self, done):
-       rc = self.tasks[done].execution.exitcode
-       if rc != 0:
-           return Run.State.STOPPED # == 'STOPPED'
-       else:
-           return Run.State.RUNNING
+    """
+    Mix-in class to make a `SequentialTaskCollection`:class: turn to STOPPED
+    state as soon as one of the tasks fail.
+    """
+    def next(self, done):
+        rc = self.tasks[done].execution.exitcode
+        if rc != 0:
+            return Run.State.STOPPED # == 'STOPPED'
+        else:
+            return Run.State.RUNNING
 
 
 ################################# Applications/Tasks #####################################
@@ -104,54 +104,54 @@ class SplitSequenceFile(MyApplication):
         return True
 
 
-class CreateAnnotateSequencePickle(Application):
+class CreateAnnotateSequencePickle(MyApplication):
     def valid(self, output):
         return True
 
 
-class CreateHMMPickles(Application):
-
-    def valid(self, output):
-        return True
-
-
-class AnnotateTRsFromHmmer(Application):
+class CreateHMMPickles(MyApplication):
 
     def valid(self, output):
         return True
 
 
-class AnnotateDeNovo(Application):
+class AnnotateTRsFromHmmer(MyApplication):
 
     def valid(self, output):
         return True
 
 
-class CalculateSignificance(Application):
+class AnnotateDeNovo(MyApplication):
 
     def valid(self, output):
         return True
 
 
-class MergeAndBasicFilter(Application):
+class CalculateSignificance(MyApplication):
 
     def valid(self, output):
         return True
 
 
-class CalculateOverlap(Application):
+class MergeAndBasicFilter(MyApplication):
 
     def valid(self, output):
         return True
 
 
-class RefineDenovo(Application):
+class CalculateOverlap(MyApplication):
 
     def valid(self, output):
         return True
 
 
-class SerializeAnnotations(Application):
+class RefineDenovo(MyApplication):
+
+    def valid(self, output):
+        return True
+
+
+class SerializeAnnotations(MyApplication):
 
     def valid(self, output):
         return True
@@ -228,33 +228,16 @@ class MainSequentialFlow(StopOnError, SequentialTaskCollection):
         gc3libs.log.info("\t Calling MainSequentialFlow.__init({})".format(jokes))
 
         self.initial_tasks = [DataPreparationParallelFlow(),
-                    SequencewiseParallelFlow(self.lSeq, self.dTRDAnnotation)
-                    ,
-
-                    # Add all the others
+                    SequencewiseParallelFlow(self.lSeq, self.dTRDAnnotation),
+                    MergeAndBasicFilter(name = "merge_and_basic_filter"),
+                    CalculateOverlap(name = "calculate_overlap"),
+                    RefineDenovo(name = "refine_denovo"),
+                    SerializeAnnotations(name = "serialize_annotations")
                     ]
 
         ## What does this line do??????????
-        SequentialTaskCollection.__init__(self, [self.initial_task], **kwargs)
+        SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
 
-    def next(self, iterator):
-        if iterator == 0:
-            self.add(SequencewiseParallelFlow(self.lSeq, self.dTRDAnnotation))
-            return Run.State.RUNNING
-        elif iterator == 1:
-            self.add(MergeAndBasicFilter(name = "merge_and_basic_filter"))
-            return Run.State.RUNNING
-        elif iterator == 2:
-            self.add(CalculateOverlap(name = "calculate_overlap"))
-            return Run.State.RUNNING
-        elif iterator == 3:
-            self.add(RefineDenovo(name = "refine_denovo"))
-            return Run.State.RUNNING
-        elif iterator == 4:
-            self.add(SerializeAnnotations(name = "serialize_annotations"))
-            return Run.State.RUNNING
-        else:
-            return Run.State.TERMINATED
 
     def terminated(self):
         gc3libs.log.info("\t MainSequentialFlow.terminated [%s]" % self.execution.returncode)
@@ -284,17 +267,11 @@ class SeqPreparationSequential(StopOnError, SequentialTaskCollection):
 
 
         self.job_name = self.joke
-        initial_task = SplitSequenceFile(self.joke)
-        SequentialTaskCollection.__init__(self, [initial_task], **kwargs)
+        self.initial_tasks = [SplitSequenceFile(name = "split_sequence_file", **kwargs),
+                                CreateAnnotateSequencePickle(name = "create_and_annotate_sequence_pickles", **kwargs)
+                                ]
 
-    def next(self, iterator):
-        if iterator == 0:
-            gc3libs.log.info("\t\t\t\tCalling SeqPreparationSequential.next(%d) ... " % int(iterator))
-            self.add(CreateAnnotateSequencePickle())
-            return Run.State.RUNNING
-        else:
-            self.execution.returncode = 0
-            return Run.State.TERMINATED
+        SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
 
     def terminated(self):
         gc3libs.log.info("\t\t\t\tSeqPreparationSequential.terminated [%d]" % self.execution.returncode)
@@ -343,21 +320,16 @@ class TRDSequential(StopOnError, SequentialTaskCollection):
         gc3libs.log.info("\t\t\t\tCalling TRDSequential.__init__ for joke: {}".format(self.joke))
 
         if self.type == 'Hmmer':
-            initial_task = AnnotateTRsFromHmmer(name = "annotate_TRs_from_hmmer", s = self.s)
+            self.initial_tasks = [AnnotateTRsFromHmmer(name = "annotate_TRs_from_hmmer", s = self.s),
+                                CalculateSignificance(name = "calculate_significance", n = self.n, notsure = self.name),
+                                ]
         elif self.type == 'deNovo':
-            initial_task = AnnotateDeNovo(name = "annotate_de_novo", TRD = self.TRD)
+                    self.initial_tasks = [AnnotateDeNovo(name = "annotate_de_novo", TRD = self.TRD),
+                                CalculateSignificance(name = "calculate_significance", n = self.n, notsure = self.name),
+                                ]
         else:
             raise("type not known: {}".format(self.type))
-        SequentialTaskCollection.__init__(self, [initial_task], **kwargs)
-
-    def next(self, iterator):
-        if iterator == 0:
-            gc3libs.log.info("\t\t\t\tCalling TRDSequential.next(%d) ... " % int(iterator))
-            self.add(CalculateSignificance(name = "calculate_significance", n = self.n, notsure = self.name))
-            return Run.State.RUNNING
-        else:
-            self.execution.returncode = 0
-            return Run.State.TERMINATED
+        SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
 
     def terminated(self):
         gc3libs.log.info("\t\t\t\tTRDSequential.terminated [%d]" % self.execution.returncode)
