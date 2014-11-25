@@ -60,22 +60,16 @@ class MyApplication(Application):
         if self.execution.returncode == 0:
             gc3libs.log.info("{1} claims to be successful: self.execution.returncode: {0}".format(self.execution.returncode, self.__class__.__name__))
             # Check if result file exists (Later: and complies to some rules).
-            if not os.path.isfile(self.c['output']):
-                gc3libs.log.info("{} has not produced an output file.".format(self.__class__.__name__))
-                self.execution.returncode = 1
+            if self.is_valid(self.c['output']):  # IMPLEMENT IN CLASS!
+                gc3libs.log.info("{} has run successfully to completion.".format(self.__class__.__name__))
+                # Now, clean up
+                # Delete all log files if everything ran smoothly.
+#                os.remove(os.path.join(self.output_dir, self.c['stdout']))
+#                os.remove(os.path.join(self.output_dir, self.c['stderr']))
+            else:
+                gc3libs.log.info("%s has not produced a valid outputfile.", self.__class__.__name__)
                 # Set self.execution.exitcode to a non-zero integer <256 (to indicate an error)
                 self.execution.exitcode = 42
-            else:
-                if self.valid(self.c['output']):  # IMPLEMENT IN CLASS!
-                    gc3libs.log.info("{} has run successfully to completion.".format(self.__class__.__name__))
-                    # Now, clean up
-                    # Delete all log files if everything ran smoothly.
-    #                os.remove(os.path.join(self.output_dir, self.c['stdout']))
-    #                os.remove(os.path.join(self.output_dir, self.c['stderr']))
-                else:
-                    gc3libs.log.info("%s has not produced a valid outputfile.", self.__class__.__name__)
-                    # Set self.execution.exitcode to a non-zero integer <256 (to indicate an error)
-                    self.execution.exitcode = 42
 
         else:
             gc3libs.log.info("{1} is not successful: self.execution.returncode: {0}".format(self.execution.returncode, self.__class__.__name__))
@@ -108,60 +102,67 @@ class StopOnError(object):
 
 class SplitSequenceFile(MyApplication):
 
-    def valid(self, output):
+    def is_valid(self, output):
+
+#        if not os.path.isfile(self.c['output']):
+#        gc3libs.log.info("{} has not produced an output file.".format(self.__class__.__name__))
+#        self.execution.returncode = 1
+#        # Set self.execution.exitcode to a non-zero integer <256 (to indicate an error)
+#        self.execution.exitcode = 42
+
         return True
 
 
 class CreateAnnotateSequencePickle(MyApplication):
-    def valid(self, output):
+    def is_valid(self, output):
         return True
 
 
 class CreateHMMPickles(MyApplication):
 
-    def valid(self, output):
+    def is_valid(self, output):
         return True
 
 
 class AnnotateTRsFromHmmer(MyApplication):
 
-    def valid(self, output):
+    def is_valid(self, output):
         return True
 
 
 class AnnotateDeNovo(MyApplication):
 
-    def valid(self, output):
+    def is_valid(self, output):
         return True
 
 
 class CalculateSignificance(MyApplication):
 
-    def valid(self, output):
+    def is_valid(self, output):
         return True
 
 
 class MergeAndBasicFilter(MyApplication):
 
-    def valid(self, output):
+    def is_valid(self, output):
         return True
 
 
 class CalculateOverlap(MyApplication):
 
-    def valid(self, output):
+    def is_valid(self, output):
         return True
 
 
 class RefineDenovo(MyApplication):
 
-    def valid(self, output):
+    def is_valid(self, output):
         return True
 
 
 class SerializeAnnotations(MyApplication):
 
-    def valid(self, output):
+    def is_valid(self, output):
         return True
 
 
