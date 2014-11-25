@@ -249,10 +249,10 @@ class MainSequentialFlow(SequentialTaskCollection):
         if self.tasks[done].execution.exitcode != 0:
             return Run.State.STOPPED # == 'STOPPED'
         elif iterator == 0:
-            self.add(SequencewiseParallelFlow(self.lSeq, self.dTRDAnnotation))
+            self.add(SequencewiseParallelFlow())
             return Run.State.RUNNING
         elif iterator == 1:
-            self.add(SerializeAnnotations(self.jokes))
+            self.add(SerializeAnnotations())
             return Run.State.RUNNING
         else:
             return Run.State.TERMINATED
