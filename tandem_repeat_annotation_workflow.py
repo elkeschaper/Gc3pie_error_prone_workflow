@@ -236,7 +236,10 @@ class MainSequentialFlow(SequentialTaskCollection):
 
         gc3libs.log.info("\t Calling MainSequentialFlow.__init({})".format("<No parameters>"))
 
-        self.initial_tasks = [DataPreparationParallelFlow()]
+        if config["create_hmm_pickles"]["activated"] == 'True':
+            self.initial_tasks = [DataPreparationParallelFlow()]
+        else:
+            self.initial_tasks = [SeqPreparationSequential()]
 
         ## What does this line do??????????
         SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
@@ -266,10 +269,7 @@ class DataPreparationParallelFlow(ParallelTaskCollection):
         self.kwargs = kwargs
         gc3libs.log.info("\t\tCalling DataPreparationParallelFlow.__init({})".format(self.kwargs))
 
-        if config["create_hmm_pickles"]["activated"] == 'True':
-            self.tasks = [SeqPreparationSequential(),CreateHMMPickles(name = 'create_hmm_pickles')]
-        else:
-            self.tasks = [SeqPreparationSequential()]
+        self.tasks = [SeqPreparationSequential(),CreateHMMPickles(name = 'create_hmm_pickles')]
 
         ParallelTaskCollection.__init__(self, self.tasks, **kwargs)
 
