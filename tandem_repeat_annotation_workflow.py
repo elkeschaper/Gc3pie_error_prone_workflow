@@ -229,18 +229,32 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
 ######################## Support Classes / Workflow elements #############################
 
 
-class MainSequentialFlow(StopOnError, SequentialTaskCollection):
+#class MainSequentialFlow(StopOnError, SequentialTaskCollection):
+class MainSequentialFlow(SequentialTaskCollection):
     def __init__(self, **kwargs):
 
         gc3libs.log.info("\t Calling MainSequentialFlow.__init({})".format("<No parameters>"))
 
-        self.initial_tasks = [DataPreparationParallelFlow(),
-                    SequencewiseParallelFlow(),
-                    SerializeAnnotations(name = "serialize_annotations")
-                    ]
+        self.initial_tasks = [DataPreparationParallelFlow()]
 
         ## What does this line do??????????
         SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
+
+    def next(self, iterator):
+        # Mixture of enumerating tasks, and StopOnError
+        if self.tasks[done].execution.exitcode != 0:
+            return Run.State.STOPPED # == 'STOPPED'
+        elif iterator == 0:
+            self.add(SequencewiseParallelFlow(self.lSeq, self.dTRDAnnotation))
+            return Run.State.RUNNING
+        elif iterator == 1:
+            self.add(SerializeAnnotations(self.jokes))
+            return Run.State.RUNNING
+        else:
+            return Run.State.TERMINATED
+
+
+
 
 
     def terminated(self):
