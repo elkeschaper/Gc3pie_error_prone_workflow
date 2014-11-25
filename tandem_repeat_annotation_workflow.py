@@ -3,6 +3,7 @@
 import configobj
 import os
 import os.path
+import re
 import sqlalchemy as sqla
 import sys
 
@@ -30,6 +31,13 @@ class MyApplication(Application):
 
         gc3libs.log.info("Initialising {}".format(self.__class__.__name__))
         self.c = config[name]
+
+        # Replace every "%X" in the config with the current value for X, e.g. "3".
+        if "param" in kwargs:
+            for iC, iCValue in self.c.items():
+                for param_name,param_value in kwargs['param'].items():
+                    self.c[iC] = iCValue.replace(param_name, param_value)
+                print "\n"+self.c[iC]+"\n"
 
         gc3libs.Application.__init__(self,
                                      arguments = [self.c['script'], "-i", self.c['input'], "-o", self.c['output'], self.c['extra']],
@@ -213,7 +221,7 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
         #name = "myTestWorkflow"
         gc3libs.log.info("Calling TestWorkflow.next_tasks()")
 
-        yield tandem_repeat_annotation_workflow.MainSequentialFlow(self.jokes, **kwargs)
+        yield tandem_repeat_annotation_workflow.MainSequentialFlow(**kwargs)
 
 
 
@@ -222,16 +230,12 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
 
 
 class MainSequentialFlow(StopOnError, SequentialTaskCollection):
-    def __init__(self, jokes, **kwargs):
-        self.jokes = jokes
+    def __init__(self, **kwargs):
 
-        gc3libs.log.info("\t Calling MainSequentialFlow.__init({})".format(jokes))
+        gc3libs.log.info("\t Calling MainSequentialFlow.__init({})".format("<No parameters>"))
 
         self.initial_tasks = [DataPreparationParallelFlow(),
-                    SequencewiseParallelFlow(self.lSeq, self.dTRDAnnotation),
-                    MergeAndBasicFilter(name = "merge_and_basic_filter"),
-                    CalculateOverlap(name = "calculate_overlap"),
-                    RefineDenovo(name = "refine_denovo"),
+                    SequencewiseParallelFlow(),
                     SerializeAnnotations(name = "serialize_annotations")
                     ]
 
@@ -279,14 +283,18 @@ class SeqPreparationSequential(StopOnError, SequentialTaskCollection):
 
 class SequencewiseParallelFlow(ParallelTaskCollection):
 
-    def __init__(self, lSeq, dTRDAnnotation, **kwargs):
+    def __init__(self, **kwargs):
 
-        # Alternative: Find all files in dir
-        self.lSeq = lSeq
-        self.dTRDAnnotation = dTRDAnnotation
+        self.c = config["sequencewise_parallel_flow"]
+
+        # TODO: Find all files in dir and create self.lSeq! Warning! Should be done once the
+        # Tasks before are finished.
+        self.lSeq = [re.search(r'\d+', i).group() for i in os.listdir(self.c['input'])]
+        self.kwargs = kwargs
+
         gc3libs.log.info("\t\tCalling SequencewiseParallelFlow.__init({})".format(self.kwargs))
 
-        self.tasks = [TRDwiseParallelFlow(iSeq, dTRDAnnotation) for iSeq in lSeq]
+        self.tasks = [SequenceSequential(iSeq = iSeq) for iSeq in self.lSeq]
 
         ParallelTaskCollection.__init__(self, self.tasks, **kwargs)
 
@@ -295,14 +303,33 @@ class SequencewiseParallelFlow(ParallelTaskCollection):
         gc3libs.log.info("\t\tSequencewiseParallelFlow.terminated")
 
 
+class SequenceSequential(StopOnError, SequentialTaskCollection):
+    def __init__(self, iSeq, **kwargs):
+
+        param = {"$N": iSeq}
+        self.iSeq = iSeq
+        self.initial_tasks = [TRDwiseParallelFlow(iSeq = iSeq),
+                                MergeAndBasicFilter(name = "merge_and_basic_filter", param = param),
+                                CalculateOverlap(name = "calculate_overlap", param = param),
+                                RefineDenovo(name = "refine_denovo", param = param),
+                                ]
+
+        SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
+
+    def terminated(self):
+        gc3libs.log.info("\t\t\t\tTRDSequential.terminated [%d]" % self.execution.returncode)
+
+
 class TRDwiseParallelFlow(ParallelTaskCollection):
 
-    def __init__(self, s, dTRDAnnotation, **kwargs):
+    def __init__(self, iSeq, **kwargs):
 
-        self.s = s
+        self.c = config["TRDwise_parallel_flow"]
+        self.iSeq = iSeq
+        self.kwargs = kwargs
         gc3libs.log.info("\t\tCalling TRDwiseParallelFlow.__init({})".format(self.kwargs))
 
-        self.tasks = [TRDSequential(self.s, iName, iType) for iName, iType in dTRDAnnotation.items()]
+        self.tasks = [TRDSequential(self.iSeq, iTRD, iType) for iTRD, iType in self.c.items()]
 
         ParallelTaskCollection.__init__(self, self.tasks, **kwargs)
 
@@ -312,23 +339,25 @@ class TRDwiseParallelFlow(ParallelTaskCollection):
 
 
 class TRDSequential(StopOnError, SequentialTaskCollection):
-    def __init__(self, s, name, type, **kwargs):
+    def __init__(self, n, TRD, TRD_type, **kwargs):
 
-        self.s = s
-        self.name = name
-        self.type = type
-        gc3libs.log.info("\t\t\t\tCalling TRDSequential.__init__ for joke: {}".format(self.joke))
+        param = {"$N": n, "$TRD": TRD}
+        self.n = n
+        self.TRD = TRD
+        self.TRD_type = TRD_type
+        gc3libs.log.info(TRD_type)
 
-        if self.type == 'Hmmer':
-            self.initial_tasks = [AnnotateTRsFromHmmer(name = "annotate_TRs_from_hmmer", s = self.s),
-                                CalculateSignificance(name = "calculate_significance", n = self.n, notsure = self.name),
+        if self.TRD_type == 'Hmmer':
+            self.initial_tasks = [AnnotateTRsFromHmmer(name = "annotate_TRs_from_hmmer", param = param),
+                                CalculateSignificance(name = "calculate_significance", param = param),
                                 ]
-        elif self.type == 'deNovo':
-                    self.initial_tasks = [AnnotateDeNovo(name = "annotate_de_novo", TRD = self.TRD),
-                                CalculateSignificance(name = "calculate_significance", n = self.n, notsure = self.name),
+        elif self.TRD_type == 'deNovo':
+                    self.initial_tasks = [AnnotateDeNovo(name = "annotate_de_novo", param = param),
+                                CalculateSignificance(name = "calculate_significance", param = param),
                                 ]
         else:
-            raise("type not known: {}".format(self.type))
+            # FIXME!
+            raise("TRD_type not known: {}".format(self.TRD_type))
         SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
 
     def terminated(self):
