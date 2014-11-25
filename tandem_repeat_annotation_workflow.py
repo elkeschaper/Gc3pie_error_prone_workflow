@@ -254,9 +254,6 @@ class MainSequentialFlow(SequentialTaskCollection):
             return Run.State.TERMINATED
 
 
-
-
-
     def terminated(self):
         gc3libs.log.info("\t MainSequentialFlow.terminated [%s]" % self.execution.returncode)
 
@@ -268,7 +265,10 @@ class DataPreparationParallelFlow(ParallelTaskCollection):
         self.kwargs = kwargs
         gc3libs.log.info("\t\tCalling DataPreparationParallelFlow.__init({})".format(self.kwargs))
 
-        self.tasks = [SeqPreparationSequential(),CreateHMMPickles(name = 'create_hmm_pickles')]
+        if config["create_hmm_pickles"]["activated"] == 'True':
+            self.tasks = [SeqPreparationSequential(),CreateHMMPickles(name = 'create_hmm_pickles')]
+        else:
+            self.tasks = [SeqPreparationSequential()]
 
         ParallelTaskCollection.__init__(self, self.tasks, **kwargs)
 
@@ -280,11 +280,8 @@ class DataPreparationParallelFlow(ParallelTaskCollection):
 class SeqPreparationSequential(StopOnError, SequentialTaskCollection):
     def __init__(self, **kwargs):
 
-        self.joke = 'hard_coded_joke'
-        gc3libs.log.info("\t\t\t\tCalling SeqPreparationSequential.__init__ for joke: {}".format(self.joke))
+        gc3libs.log.info("\t\t\t\tCalling SeqPreparationSequential.__init__ ")
 
-
-        self.job_name = self.joke
         self.initial_tasks = [SplitSequenceFile(name = "split_sequence_file", **kwargs),
                                 CreateAnnotateSequencePickle(name = "create_and_annotate_sequence_pickles", **kwargs)
                                 ]
