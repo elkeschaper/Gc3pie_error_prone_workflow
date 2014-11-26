@@ -91,11 +91,15 @@ class StopOnError(object):
     state as soon as one of the tasks fail.
     """
     def next(self, done):
-        rc = self.tasks[done].execution.exitcode
-        if rc != 0:
-            return Run.State.STOPPED # == 'STOPPED'
+        if done == len(self.tasks) - 1:
+            self.execution.returncode = self.tasks[done].execution.returncode
+            return Run.State.TERMINATED
         else:
-            return Run.State.RUNNING
+            rc = self.tasks[done].execution.exitcode
+            if rc != 0:
+                return Run.State.STOPPED
+            else:
+                return Run.State.RUNNING
 
 
 ################################# Applications/Tasks #####################################
@@ -246,7 +250,7 @@ class MainSequentialFlow(SequentialTaskCollection):
 
     def next(self, iterator):
         # Mixture of enumerating tasks, and StopOnError
-        if self.tasks[done].execution.exitcode != 0:
+        if self.tasks[iterator].execution.exitcode != 0:
             return Run.State.STOPPED # == 'STOPPED'
         elif iterator == 0:
             self.add(SequencewiseParallelFlow())
