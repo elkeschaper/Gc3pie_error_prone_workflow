@@ -32,7 +32,7 @@ class MyApplication(Application):
     def __init__(self, name, **kwargs):
 
         gc3libs.log.info("Initialising {}".format(self.__class__.__name__))
-        self.c = config[name]
+        self.c = config[name].copy()
 
         # Replace every "%X" in the config with the current value for X, e.g. "3".
         if "param" in kwargs:
