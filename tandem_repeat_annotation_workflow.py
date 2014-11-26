@@ -355,8 +355,9 @@ class TRDwiseParallelFlow(ParallelTaskCollection):
         self.execution.returncode = 0
         gc3libs.log.info("\t\tTRDwiseParallelFlow.terminated")
 
-@gc3libs.debug.trace
+
 class TRDSequential(StopOnError, SequentialTaskCollection):
+    @gc3libs.debug.trace
     def __init__(self, n, TRD, TRD_type, **kwargs):
 
         self.param = {"$N": n, "$TRD": TRD}
