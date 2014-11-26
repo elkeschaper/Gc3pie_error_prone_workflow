@@ -14,6 +14,7 @@ from gc3libs import Application, Run, Task
 from gc3libs.cmdline import SessionBasedScript, _Script
 from gc3libs.workflow import SequentialTaskCollection, ParallelTaskCollection
 from gc3libs.persistence.accessors import GetValue
+import gc3libs.debug
 import gc3libs.utils
 
 config_file = '/Users/elkeschaper/Python_projects/Gc3pie_error_prone_workflow/tandem_repeat_annotation_defaults.ini'
@@ -27,6 +28,7 @@ class MyApplication(Application):
     Basic template method pattern  `Application`:class: Initialise Application generically,
     and check for successful running generically.
     """
+    @gc3libs.debug.trace
     def __init__(self, name, **kwargs):
 
         gc3libs.log.info("Initialising {}".format(self.__class__.__name__))
@@ -305,7 +307,7 @@ class SequencewiseParallelFlow(ParallelTaskCollection):
 
         # TODO: Find all files in dir and create self.lSeq! Warning! Should be done once the
         # Tasks before are finished.
-        self.lSeq = [re.search(r'\d+', i).group() for i in os.listdir(self.c['input'])]
+        self.lSeq = [re.findall(self.c['retag'], i)[0] for i in os.listdir(self.c['input'])]
         self.kwargs = kwargs
 
         gc3libs.log.info("\t\tCalling SequencewiseParallelFlow.__init({})".format(self.kwargs))
@@ -353,23 +355,23 @@ class TRDwiseParallelFlow(ParallelTaskCollection):
         self.execution.returncode = 0
         gc3libs.log.info("\t\tTRDwiseParallelFlow.terminated")
 
-
+@gc3libs.debug.trace
 class TRDSequential(StopOnError, SequentialTaskCollection):
     def __init__(self, n, TRD, TRD_type, **kwargs):
 
-        param = {"$N": n, "$TRD": TRD}
+        self.param = {"$N": n, "$TRD": TRD}
         self.n = n
         self.TRD = TRD
         self.TRD_type = TRD_type
         gc3libs.log.info(TRD_type)
 
         if self.TRD_type == 'Hmmer':
-            self.initial_tasks = [AnnotateTRsFromHmmer(name = "annotate_TRs_from_hmmer", param = param),
-                                CalculateSignificance(name = "calculate_significance", param = param),
+            self.initial_tasks = [AnnotateTRsFromHmmer(name = "annotate_TRs_from_hmmer", param = self.param),
+                                CalculateSignificance(name = "calculate_significance", param = self.param),
                                 ]
         elif self.TRD_type == 'deNovo':
-                    self.initial_tasks = [AnnotateDeNovo(name = "annotate_de_novo", param = param),
-                                CalculateSignificance(name = "calculate_significance", param = param),
+                    self.initial_tasks = [AnnotateDeNovo(name = "annotate_de_novo", param = self.param),
+                                CalculateSignificance(name = "calculate_significance", param = self.param),
                                 ]
         else:
             # FIXME!
