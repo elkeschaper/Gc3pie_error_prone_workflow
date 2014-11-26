@@ -37,9 +37,9 @@ class MyApplication(Application):
 
         # Replace every "%X" in the config with the current value for X, e.g. "3".
         if "param" in kwargs:
-            for iC, iCValue in self.c.items():
+            for iC in self.c.keys():
                 for param_name,param_value in kwargs['param'].items():
-                    self.c[iC] = iCValue.replace(param_name, param_value)
+                    self.c[iC] = self.c[iC].replace(param_name, param_value)
                 print("\n"+self.c[iC])
         print("\n\n")
 
@@ -345,6 +345,7 @@ class TRDwiseParallelFlow(ParallelTaskCollection):
     def __init__(self, iSeq, **kwargs):
 
         self.c = config["TRDwise_parallel_flow"]
+        print(self.c)
         self.iSeq = iSeq
         self.kwargs = kwargs
         gc3libs.log.info("\t\tCalling TRDwiseParallelFlow.__init({})".format(self.kwargs))
