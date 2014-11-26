@@ -33,13 +33,15 @@ class MyApplication(Application):
 
         gc3libs.log.info("Initialising {}".format(self.__class__.__name__))
         self.c = config[name]
+        print(self.c)
 
         # Replace every "%X" in the config with the current value for X, e.g. "3".
         if "param" in kwargs:
             for iC, iCValue in self.c.items():
                 for param_name,param_value in kwargs['param'].items():
                     self.c[iC] = iCValue.replace(param_name, param_value)
-                print "\n"+self.c[iC]+"\n"
+                print("\n"+self.c[iC])
+        print("\n\n")
 
         gc3libs.Application.__init__(self,
                                      arguments = [self.c['script'], "-i", self.c['input'], "-o", self.c['output'], self.c['extra']],
