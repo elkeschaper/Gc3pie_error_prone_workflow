@@ -41,7 +41,8 @@ class MyApplication(Application):
                     self.c[iC] = self.c[iC].replace(param_name, param_value)
 
         gc3libs.Application.__init__(self,
-                                     arguments = [self.c['script'], "-i", self.c['input'], "-o", self.c['output']] + self.c['extra'].split(" "),
+                                     arguments = [self.c['script'], "-i", self.c['input'],
+                                     "-o", self.c['output']] + [i for i in self.c['extra'].split(" ") if i],
                                      inputs = [],
                                      outputs = [],
                                      join = True,
