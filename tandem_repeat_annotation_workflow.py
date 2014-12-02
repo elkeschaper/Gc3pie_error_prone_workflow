@@ -264,6 +264,7 @@ class MainSequentialFlow(SequentialTaskCollection):
 
 
     def terminated(self):
+        self.execution.returncode = 0
         gc3libs.log.info("\t MainSequentialFlow.terminated [%s]" % self.execution.returncode)
 
 
@@ -296,6 +297,7 @@ class SeqPreparationSequential(SequentialTaskCollection):
         SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
 
     def terminated(self):
+        self.execution.returncode = 0
         gc3libs.log.info("\t\t\t\tSeqPreparationSequential.terminated [%d]" % self.execution.returncode)
 
 
@@ -335,6 +337,7 @@ class SequenceSequential(SequentialTaskCollection):
         SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
 
     def terminated(self):
+        self.execution.returncode = 0
         gc3libs.log.info("\t\t\t\tTRDSequential.terminated [%d]" % self.execution.returncode)
 
 
@@ -381,6 +384,7 @@ class TRDSequential(SequentialTaskCollection):
         SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
 
     def terminated(self):
+        self.execution.returncode = 0
         gc3libs.log.info("\t\t\t\tTRDSequential.terminated [%d]" % self.execution.returncode)
 
 
