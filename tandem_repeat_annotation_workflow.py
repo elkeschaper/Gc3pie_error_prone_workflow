@@ -236,8 +236,8 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
 ######################## Support Classes / Workflow elements #############################
 
 
-class MainSequentialFlow(StopOnError, SequentialTaskCollection):
-#class MainSequentialFlow(SequentialTaskCollection):
+#class MainSequentialFlow(StopOnError, SequentialTaskCollection):
+class MainSequentialFlow(SequentialTaskCollection):
     def __init__(self, **kwargs):
 
         gc3libs.log.info("\t Calling MainSequentialFlow.__init({})".format("<No parameters>"))
@@ -245,10 +245,23 @@ class MainSequentialFlow(StopOnError, SequentialTaskCollection):
         self.initial_tasks = []
         if config["create_hmm_pickles"]["activated"] == 'True':
             self.initial_tasks = [DataPreparationParallelFlow()]
-        self.initial_tasks += [SeqPreparationSequential(), SequencewiseParallelFlow(), SerializeAnnotations()]
+        self.initial_tasks += [SeqPreparationSequential()]
 
-        ## What does this line do??????????
         SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
+
+    def next(self, iterator):
+        # Mixture of enumerating tasks, and StopOnError
+        #if self.tasks[iterator].execution.exitcode != 0:
+        #    return Run.State.STOPPED # == 'STOPPED'
+        if iterator == 0:
+            self.add(SequencewiseParallelFlow())
+            return Run.State.RUNNING
+        elif iterator == 1:
+            self.add(SerializeAnnotations())
+            return Run.State.RUNNING
+        else:
+            return Run.State.TERMINATED
+
 
     def terminated(self):
         gc3libs.log.info("\t MainSequentialFlow.terminated [%s]" % self.execution.returncode)
@@ -270,7 +283,8 @@ class DataPreparationParallelFlow(ParallelTaskCollection):
         gc3libs.log.info("\t\tDataPreparationParallelFlow.terminated")
 
 
-class SeqPreparationSequential(StopOnError, SequentialTaskCollection):
+#class SeqPreparationSequential(StopOnError, SequentialTaskCollection):
+class SeqPreparationSequential(SequentialTaskCollection):
     def __init__(self, **kwargs):
 
         gc3libs.log.info("\t\t\t\tCalling SeqPreparationSequential.__init__ ")
@@ -306,8 +320,8 @@ class SequencewiseParallelFlow(ParallelTaskCollection):
         self.execution.returncode = 0
         gc3libs.log.info("\t\tSequencewiseParallelFlow.terminated")
 
-
-class SequenceSequential(StopOnError, SequentialTaskCollection):
+#class SequenceSequential(StopOnError, SequentialTaskCollection):
+class SequenceSequential(SequentialTaskCollection):
     def __init__(self, iSeq, **kwargs):
 
         param = {"$N": iSeq}
@@ -342,8 +356,8 @@ class TRDwiseParallelFlow(ParallelTaskCollection):
         self.execution.returncode = 0
         gc3libs.log.info("\t\tTRDwiseParallelFlow.terminated")
 
-
-class TRDSequential(StopOnError, SequentialTaskCollection):
+#class TRDSequential(StopOnError, SequentialTaskCollection):
+class TRDSequential(SequentialTaskCollection):
     @gc3libs.debug.trace
     def __init__(self, n, TRD, TRD_type, **kwargs):
 
