@@ -28,7 +28,7 @@ class MyApplication(Application):
     Basic template method pattern  `Application`:class: Initialise Application generically,
     and check for successful running generically.
     """
-    @gc3libs.debug.trace
+    #@gc3libs.debug.trace
     def __init__(self, name, **kwargs):
 
         gc3libs.log.info("Initialising {}".format(self.__class__.__name__))
