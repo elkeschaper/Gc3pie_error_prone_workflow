@@ -245,20 +245,34 @@ class MainSequentialFlow(SequentialTaskCollection):
         self.initial_tasks = []
         if config["create_hmm_pickles"]["activated"] == 'True':
             self.initial_tasks = [DataPreparationParallelFlow()]
-        self.initial_tasks += [SeqPreparationSequential(), SequencewiseParallelFlow(), SerializeAnnotations(name="serialize_annotations")]
+        self.initial_tasks += [SeqPreparationSequential()]
 
         SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
 
     def next(self, done):
-        if done == len(self.tasks) - 1:
-            self.execution.returncode = self.tasks[done].execution.returncode
-            return Run.State.TERMINATED
+        last_task = self.tasks[done]
+        rc = last_task.execution.exitcode
+        # Stop the execution if last application failed.
+        if rc != 0:
+            self.execution.rc = rc
+            return Run.State.STOPPED
+
+        # Shall we continue with the workflow?
+        if last_task != self.tasks[-1]:
+            # We still have tasks to run in self.tasks, let's consume them before adding new tasks.
+            return Run.State.RUNNING
+        elif isinstance(last_task, SeqPreparationSequential):
+            # SequencewiseParallelFlow task needs to be initialized using the output from SeqPreparationSequential
+            self.add(SequencewiseParallelFlow())
+            return Run.State.RUNNING
+        elif isinstance(last_task, SequencewiseParallelFlow):
+            self.add(SerializeAnnotations(name="serialize_annotations"))
+            return Run.State.RUNNING
         else:
-            rc = self.tasks[done].execution.exitcode
-            if rc != 0:
-                return Run.State.STOPPED
-            else:
-                return Run.State.RUNNING
+            # Workflow is terminated.
+            self.execution.rc = rc
+            return Run.State.TERMINATED
+
 
     def terminated(self):
         self.execution.returncode = 0
