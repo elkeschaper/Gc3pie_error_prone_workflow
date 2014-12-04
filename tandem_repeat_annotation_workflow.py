@@ -245,7 +245,7 @@ class MainSequentialFlow(SequentialTaskCollection):
         self.initial_tasks = []
         if config["create_hmm_pickles"]["activated"] == 'True':
             self.initial_tasks = [DataPreparationParallelFlow()]
-        self.initial_tasks += [SeqPreparationSequential(), SequencewiseParallelFlow(), SerializeAnnotations()]
+        self.initial_tasks += [SeqPreparationSequential(), SequencewiseParallelFlow(), SerializeAnnotations(name="serialize_annotations")]
 
         SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
 
