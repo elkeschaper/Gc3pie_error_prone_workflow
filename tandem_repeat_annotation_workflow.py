@@ -4,6 +4,7 @@ import configobj
 import os
 import os.path
 import re
+import shlex
 import sqlalchemy as sqla
 import sys
 
@@ -41,8 +42,8 @@ class MyApplication(Application):
                     self.c[iC] = self.c[iC].replace(param_name, param_value)
 
         gc3libs.Application.__init__(self,
-                                     arguments = [self.c['script'], "-i", self.c['input'],
-                                     "-o", self.c['output']] + [i for i in self.c['extra'].split(" ") if i],
+                                     arguments = shlex.split(self.c['script']) + ["-i"] + shlex.split(self.c['input']) +
+                                     ["-o"] + shlex.split(self.c['output']) + shlex.split(self.c['extra']),
                                      inputs = [],
                                      outputs = [],
                                      join = True,
