@@ -246,8 +246,8 @@ class MainSequentialFlow(SequentialTaskCollection):
 
         self.initial_tasks = []
         if config["create_hmm_pickles"]["activated"] == 'True':
-            self.initial_tasks = [DataPreparationParallelFlow()]
-        self.initial_tasks += [SeqPreparationSequential()]
+            self.initial_tasks = [DataPreparationParallelFlow(**kwargs)]
+        self.initial_tasks += [SeqPreparationSequential(**kwargs)]
 
         SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
 
@@ -265,10 +265,10 @@ class MainSequentialFlow(SequentialTaskCollection):
             return Run.State.RUNNING
         elif isinstance(last_task, SeqPreparationSequential):
             # SequencewiseParallelFlow task needs to be initialized using the output from SeqPreparationSequential
-            self.add(SequencewiseParallelFlow())
+            self.add(SequencewiseParallelFlow(**kwargs))
             return Run.State.RUNNING
         elif isinstance(last_task, SequencewiseParallelFlow):
-            self.add(SerializeAnnotations(name="serialize_annotations"))
+            self.add(SerializeAnnotations(name="serialize_annotations", **kwargs))
             return Run.State.RUNNING
         else:
             # Workflow is terminated.
@@ -288,7 +288,7 @@ class DataPreparationParallelFlow(ParallelTaskCollection):
         self.kwargs = kwargs
         gc3libs.log.info("\t\tCalling DataPreparationParallelFlow.__init({})".format(self.kwargs))
 
-        self.tasks = [SeqPreparationSequential(),CreateHMMPickles(name = 'create_hmm_pickles')]
+        self.tasks = [SeqPreparationSequential(**kwargs),CreateHMMPickles(name = 'create_hmm_pickles', **kwargs)]
 
         ParallelTaskCollection.__init__(self, self.tasks, **kwargs)
 
