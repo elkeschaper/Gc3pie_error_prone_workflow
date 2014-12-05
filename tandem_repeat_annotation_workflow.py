@@ -319,6 +319,7 @@ class SequencewiseParallelFlow(ParallelTaskCollection):
 
     def __init__(self, **kwargs):
 
+        config = kwargs["config"]
         self.c = config["sequencewise_parallel_flow"]
 
         # TODO: Find all files in dir and create self.lSeq! Warning! Should be done once the
