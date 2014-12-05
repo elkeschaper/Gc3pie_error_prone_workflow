@@ -30,6 +30,7 @@ class MyApplication(Application):
     def __init__(self, name, **kwargs):
 
         gc3libs.log.info("Initialising {}".format(self.__class__.__name__))
+        config = kwargs["config"]
         self.c = config[name].copy()
 
         # Replace every "%X" in the config with the current value for X, e.g. "3".
@@ -240,10 +241,11 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
 class MainSequentialFlow(SequentialTaskCollection):
     def __init__(self, **kwargs):
 
+        config = kwargs["config"]
         gc3libs.log.info("\t Calling MainSequentialFlow.__init({})".format("<No parameters>"))
 
         self.initial_tasks = []
-        if kwargs['config']["create_hmm_pickles"]["activated"] == 'True':
+        if config["create_hmm_pickles"]["activated"] == 'True':
             self.initial_tasks = [DataPreparationParallelFlow()]
         self.initial_tasks += [SeqPreparationSequential()]
 
@@ -355,6 +357,7 @@ class TRDwiseParallelFlow(ParallelTaskCollection):
 
     def __init__(self, iSeq, **kwargs):
 
+        config = kwargs["config"]
         self.c = config["TRDwise_parallel_flow"]
         print(self.c)
         self.iSeq = iSeq
