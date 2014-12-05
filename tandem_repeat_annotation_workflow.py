@@ -343,10 +343,10 @@ class SequenceSequential(StopOnError, SequentialTaskCollection):
 
         param = {"$N": iSeq}
         self.iSeq = iSeq
-        self.initial_tasks = [TRDwiseParallelFlow(iSeq = iSeq),
-                                MergeAndBasicFilter(name = "merge_and_basic_filter", param = param),
-                                CalculateOverlap(name = "calculate_overlap", param = param),
-                                RefineDenovo(name = "refine_denovo", param = param),
+        self.initial_tasks = [TRDwiseParallelFlow(iSeq = iSeq, **kwargs),
+                                MergeAndBasicFilter(name = "merge_and_basic_filter", param = param, **kwargs),
+                                CalculateOverlap(name = "calculate_overlap", param = param, **kwargs),
+                                RefineDenovo(name = "refine_denovo", param = param, **kwargs),
                                 ]
 
         SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
@@ -387,12 +387,12 @@ class TRDSequential(StopOnError, SequentialTaskCollection):
         gc3libs.log.info(TRD_type)
 
         if self.TRD_type == 'Hmmer':
-            self.initial_tasks = [AnnotateTRsFromHmmer(name = "annotate_TRs_from_hmmer", param = self.param),
-                                CalculateSignificance(name = "calculate_significance", param = self.param),
+            self.initial_tasks = [AnnotateTRsFromHmmer(name = "annotate_TRs_from_hmmer", param = self.param, **kwargs),
+                                CalculateSignificance(name = "calculate_significance", param = self.param, **kwargs),
                                 ]
         elif self.TRD_type == 'deNovo':
-                    self.initial_tasks = [AnnotateDeNovo(name = "annotate_de_novo", param = self.param),
-                                CalculateSignificance(name = "calculate_significance", param = self.param),
+                    self.initial_tasks = [AnnotateDeNovo(name = "annotate_de_novo", param = self.param, **kwargs),
+                                CalculateSignificance(name = "calculate_significance", param = self.param, **kwargs),
                                 ]
         else:
             # FIXME!
