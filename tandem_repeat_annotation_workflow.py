@@ -39,6 +39,8 @@ class MyApplication(Application):
                 for param_name,param_value in kwargs['param'].items():
                     self.c[iC] = self.c[iC].replace(param_name, param_value)
 
+        kwargs['output_dir'] = self.c['logdir']
+
         gc3libs.Application.__init__(self,
                                      arguments = shlex.split(self.c['script']) + ["-i"] + shlex.split(self.c['input']) +
                                      ["-o"] + shlex.split(self.c['output']) + shlex.split(self.c['extra']),
@@ -47,7 +49,6 @@ class MyApplication(Application):
                                      join = True,
                                      stdout = self.c['stdout'],
                                      stderr = self.c['stderr'],
-                                     #output_dir = self.c['logdir'],
                                      **kwargs
                                      )
 
