@@ -249,7 +249,11 @@ class MainSequentialFlow(SequentialTaskCollection):
         self.initial_tasks = []
         if config["create_hmm_pickles"]["activated"] == 'True':
             self.initial_tasks = [DataPreparationParallelFlow(**kwargs)]
-        self.initial_tasks += [SeqPreparationSequential(**kwargs)]
+        if config["create_and_annotate_sequence_pickles"]["activated"] == 'True':
+            self.initial_tasks += [SeqPreparationSequential(**kwargs)]
+        else:
+            self.initial_tasks += [SequencewiseParallelFlow(**kwargs)]
+
 
         SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
 
