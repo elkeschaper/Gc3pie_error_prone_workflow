@@ -218,7 +218,8 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
 
     def parse_args(self):
         self.config_file = self.params.config_file
-        global config = configobj.ConfigObj(self.config_file, stringify=True)
+        global config
+        config = configobj.ConfigObj(self.config_file, stringify=True)
         gc3libs.log.info("TestWorkflow config_file: {}".format(self.config_file))
 
 
