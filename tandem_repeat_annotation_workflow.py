@@ -329,7 +329,7 @@ class SequencewiseParallelFlow(ParallelTaskCollection):
 
         gc3libs.log.info("\t\tCalling SequencewiseParallelFlow.__init({})".format(self.kwargs))
 
-        self.tasks = [SequenceSequential(iSeq = iSeq) for iSeq in self.lSeq]
+        self.tasks = [SequenceSequential(iSeq = iSeq, **kwargs) for iSeq in self.lSeq]
 
         ParallelTaskCollection.__init__(self, self.tasks, **kwargs)
 
