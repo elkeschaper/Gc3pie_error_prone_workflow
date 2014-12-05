@@ -18,9 +18,6 @@ from gc3libs.persistence.accessors import GetValue
 import gc3libs.debug
 import gc3libs.utils
 
-config_file = '/Users/elkeschaper/Python_projects/Gc3pie_error_prone_workflow/tandem_repeat_annotation_defaults.ini'
-config = configobj.ConfigObj(config_file, stringify=True)
-#self.c = configobj.ConfigObj(config_file, configspeself.c = config_specs, stringify=True)
 
 ######################## Basic Applications/Tasks Templates ##############################
 
@@ -188,8 +185,8 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
             )
 
     def setup_options(self):
-        self.add_param("-j", "--jokes", type=str, nargs="+",
-                       help="List of jokes")
+        self.add_param("-p", "--parameter_file", type=str, required=True,
+                       help="Path to the parameter file")
 
     def _make_session(self, session_uri, store_url):
         return gc3libs.session.Session(
@@ -220,8 +217,9 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
                 })
 
     def parse_args(self):
-        self.jokes = self.params.jokes
-        gc3libs.log.info("TestWorkflow Jokes: {}".format(self.jokes))
+        self.config_file = self.params.config_file
+        global config = configobj.ConfigObj(self.config_file, stringify=True)
+        gc3libs.log.info("TestWorkflow config_file: {}".format(self.config_file))
 
 
     def new_tasks(self, kwargs):
