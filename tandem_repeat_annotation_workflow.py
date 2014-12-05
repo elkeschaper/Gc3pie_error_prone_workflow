@@ -243,7 +243,7 @@ class MainSequentialFlow(SequentialTaskCollection):
         gc3libs.log.info("\t Calling MainSequentialFlow.__init({})".format("<No parameters>"))
 
         self.initial_tasks = []
-        if config["create_hmm_pickles"]["activated"] == 'True':
+        if kwargs['config']["create_hmm_pickles"]["activated"] == 'True':
             self.initial_tasks = [DataPreparationParallelFlow()]
         self.initial_tasks += [SeqPreparationSequential()]
 
