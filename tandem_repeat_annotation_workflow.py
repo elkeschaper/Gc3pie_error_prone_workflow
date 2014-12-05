@@ -218,8 +218,6 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
 
     def parse_args(self):
         self.config_file = self.params.config_file
-        global config
-        config = configobj.ConfigObj(self.config_file, stringify=True)
         gc3libs.log.info("TestWorkflow config_file: {}".format(self.config_file))
 
 
@@ -228,7 +226,10 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
         #name = "myTestWorkflow"
         gc3libs.log.info("Calling TestWorkflow.next_tasks()")
 
-        yield tandem_repeat_annotation_workflow.MainSequentialFlow(**kwargs)
+        self.config = configobj.ConfigObj(self.config_file, stringify=True)
+
+
+        yield tandem_repeat_annotation_workflow.MainSequentialFlow(config = self.config, **kwargs)
 
 
 
