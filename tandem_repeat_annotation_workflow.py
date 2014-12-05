@@ -242,6 +242,7 @@ class MainSequentialFlow(SequentialTaskCollection):
     def __init__(self, **kwargs):
 
         config = kwargs["config"]
+        self.kwargs = kwargs
         gc3libs.log.info("\t Calling MainSequentialFlow.__init({})".format("<No parameters>"))
 
         self.initial_tasks = []
@@ -265,10 +266,10 @@ class MainSequentialFlow(SequentialTaskCollection):
             return Run.State.RUNNING
         elif isinstance(last_task, SeqPreparationSequential):
             # SequencewiseParallelFlow task needs to be initialized using the output from SeqPreparationSequential
-            self.add(SequencewiseParallelFlow(**kwargs))
+            self.add(SequencewiseParallelFlow(**self.kwargs))
             return Run.State.RUNNING
         elif isinstance(last_task, SequencewiseParallelFlow):
-            self.add(SerializeAnnotations(name="serialize_annotations", **kwargs))
+            self.add(SerializeAnnotations(name="serialize_annotations", **self.kwargs))
             return Run.State.RUNNING
         else:
             # Workflow is terminated.
