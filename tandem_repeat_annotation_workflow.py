@@ -185,7 +185,7 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
             )
 
     def setup_options(self):
-        self.add_param("-p", "--parameter_file", type=str, required=True,
+        self.add_param("-conf", "--config_file", type=str, required=True,
                        help="Path to the parameter file")
 
     def _make_session(self, session_uri, store_url):
