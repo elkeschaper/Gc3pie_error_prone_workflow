@@ -47,7 +47,7 @@ class MyApplication(Application):
                                      join = True,
                                      stdout = self.c['stdout'],
                                      stderr = self.c['stderr'],
-                                     output_dir = self.c['logdir'],
+                                     #output_dir = self.c['logdir'],
                                      **kwargs
                                      )
 
