@@ -32,12 +32,19 @@ class MyApplication(Application):
         gc3libs.log.info("Initialising {}".format(self.__class__.__name__))
         config = kwargs["config"]
         self.c = config[name].copy()
+        self.application_class_name = self.__class__.__name__
 
         # Replace every "%X" in the config with the current value for X, e.g. "3".
         if "param" in kwargs:
             for iC in self.c.keys():
                 for param_name,param_value in kwargs['param'].items():
                     self.c[iC] = self.c[iC].replace(param_name, param_value)
+
+            for param_name,param_value in kwargs['param'].items():
+                if param_name == 'TRD':
+                    self.TRD = param_value
+                elif param_name == 'N':
+                    self.N = param_value
 
         kwargs['output_dir'] = self.c['logdir']
 
@@ -197,7 +204,7 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
             extra_fields = {
                 # NB: enlarge window to at least 150 columns to read this table properly!
                 sqla.Column('class',              sqla.TEXT())    : (lambda obj: obj.__class__.__name__)                                              , # task class
-                ### sqla.Column('name',               sqla.TEXT())    : GetValue()             .jobname                                                   , # job name
+                sqla.Column('name',               sqla.TEXT())    : GetValue()             .application_class_name                                                   , # job name
                 sqla.Column('executable',         sqla.TEXT())    : GetValue(default=None) .arguments[0]                        ,#.ONLY(CodemlApplication), # program executable
                 sqla.Column('output_path',        sqla.TEXT())    : GetValue(default=None) .output_dir                        ,#.ONLY(CodemlApplication), # fullpath to codeml output directory
                 sqla.Column('cluster',            sqla.TEXT())    : GetValue(default=None) .execution.resource_name           ,#.ONLY(CodemlApplication), # cluster/compute element
@@ -216,7 +223,9 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
                 sqla.Column('time_submitted',     sqla.FLOAT())   : GetValue(default=None) .execution.timestamp['SUBMITTED']  ,#.ONLY(CodemlApplication), # client-side submission (float) time
                 sqla.Column('time_terminated',    sqla.FLOAT())   : GetValue(default=None) .execution.timestamp['TERMINATED'] ,#.ONLY(CodemlApplication), # client-side termination (float) time
                 sqla.Column('time_stopped',       sqla.FLOAT())   : GetValue(default=None) .execution.timestamp['STOPPED']    ,#.ONLY(CodemlApplication), # client-side stop (float) time
-                sqla.Column('error_tag',          sqla.TEXT())    : GetValue(default=None) .error_tag
+                sqla.Column('error_tag',          sqla.TEXT())    : GetValue(default=None) .error_tag,
+                sqla.Column('TRD',          sqla.TEXT())    : GetValue(default=None).TRD.ONLY(AnnotateDeNovo,AnnotateTRsFromHmmer),
+                sqla.Column('N',          sqla.TEXT())    : GetValue(default=None).N.ONLY(AnnotateDeNovo,AnnotateTRsFromHmmer)
                 })
 
     def parse_args(self):
