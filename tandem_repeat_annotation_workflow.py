@@ -224,8 +224,8 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
                 sqla.Column('time_terminated',    sqla.FLOAT())   : GetValue(default=None) .execution.timestamp['TERMINATED'] ,#.ONLY(CodemlApplication), # client-side termination (float) time
                 sqla.Column('time_stopped',       sqla.FLOAT())   : GetValue(default=None) .execution.timestamp['STOPPED']    ,#.ONLY(CodemlApplication), # client-side stop (float) time
                 sqla.Column('error_tag',          sqla.TEXT())    : GetValue(default=None) .error_tag,
-                sqla.Column('TRD',          sqla.TEXT())    : GetValue(default=None).TRD.ONLY(AnnotateDeNovo,AnnotateTRsFromHmmer),
-                sqla.Column('N',          sqla.TEXT())    : GetValue(default=None).N.ONLY(AnnotateDeNovo,AnnotateTRsFromHmmer)
+                sqla.Column('TRD',          sqla.TEXT())    : GetValue(default=None).TRD.ONLY((AnnotateDeNovo,AnnotateTRsFromHmmer)),
+                sqla.Column('N',          sqla.TEXT())    : GetValue(default=None).N.ONLY((AnnotateDeNovo,AnnotateTRsFromHmmer))
                 })
 
     def parse_args(self):
