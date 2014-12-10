@@ -227,7 +227,7 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
                 sqla.Column('time_stopped',       sqla.FLOAT())   : GetValue(default=None) .execution.timestamp['STOPPED']    ,#.ONLY(CodemlApplication), # client-side stop (float) time
                 sqla.Column('error_tag',          sqla.TEXT())    : GetValue(default=None) .error_tag,
                 sqla.Column('TRD',          sqla.TEXT())    : GetValue(default=None).TRD.ONLY((AnnotateDeNovo,AnnotateTRsFromHmmer)),
-                sqla.Column('N',          sqla.TEXT())    : GetValue(default=None).N.ONLY((AnnotateDeNovo)),
+                sqla.Column('N',          sqla.TEXT())    : GetValue(default=None).N.ONLY(AnnotateDeNovo),
                 sqla.Column('M',          sqla.TEXT())    : GetValue(default=None).M
 
                 })
