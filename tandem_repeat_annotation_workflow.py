@@ -206,7 +206,7 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
                 ###sqla.Column('requested_walltime', sqla.INTEGER()) : _get_requested_walltime_or_none                           , # requested walltime, in hours
                 sqla.Column('requested_cores',    sqla.INTEGER()) : GetValue(default=None) .requested_cores                   ,#.ONLY(CodemlApplication), # num of cores requested
                 sqla.Column('duration_s',         sqla.INTEGER()) : lambda app: app.execution.duration.amount(unit=app.execution.duration.second)           ,#.ONLY(CodemlApplication), # used walltime
-                sqla.Column('max_used_memory_mb',      sqla.INTEGER()) : lambda app: app.execution.max_used_memory(unit=app.execution.max_used_memory.MB)           ,#.ONLY(CodemlApplication), # used max_used_memory # might need to be saved as TEXT
+                sqla.Column('max_used_memory_mb',      sqla.INTEGER()) : lambda app: app.execution.max_used_memory.amount(unit=app.execution.max_used_memory.MB)           ,#.ONLY(CodemlApplication), # used max_used_memory # might need to be saved as TEXT
                 sqla.Column('lrms_jobid',         sqla.TEXT())    : GetValue(default=None) .execution.lrms_jobid              ,#.ONLY(CodemlApplication), # arc job ID
                 ###sqla.Column('original_exitcode',  sqla.INTEGER()) : GetValue(default=None) .execution.original_exitcode       ,#.ONLY(CodemlApplication), # original exitcode
                 sqla.Column('used_cpu_time_s',         sqla.INTEGER()) : lambda app: app.execution.used_cpu_time.amount(unit=app.execution.used_cpu_time.second)           ,#.ONLY(CodemlApplication), # used walltime
