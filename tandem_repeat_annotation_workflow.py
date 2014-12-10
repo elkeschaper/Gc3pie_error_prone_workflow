@@ -431,5 +431,5 @@ def _get_requested_walltime_or_none(job):
 
 # run script
 if __name__ == '__main__':
-    import tandem_repeat_annotation_workflow
+    from tandem_repeat_annotation_workflow import AnnotateDeNovo, TandemRepeatAnnotationWorkflow, AnnotateTRsFromHmmer
     TandemRepeatAnnotationWorkflow().run()
