@@ -226,8 +226,8 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
                 sqla.Column('time_terminated',    sqla.FLOAT())   : GetValue(default=None) .execution.timestamp['TERMINATED'] ,#.ONLY(CodemlApplication), # client-side termination (float) time
                 sqla.Column('time_stopped',       sqla.FLOAT())   : GetValue(default=None) .execution.timestamp['STOPPED']    ,#.ONLY(CodemlApplication), # client-side stop (float) time
                 sqla.Column('error_tag',          sqla.TEXT())    : GetValue(default=None) .error_tag,
-                sqla.Column('TRD',          sqla.TEXT())    : GetValue(default=None).TRD.ONLY((AnnotateDeNovo,AnnotateTRsFromHmmer)),
-                sqla.Column('N',          sqla.TEXT())    : GetValue(default=None).N.ONLY(AnnotateDeNovo),
+                sqla.Column('TRD',          sqla.TEXT())    : GetValue(default=None).TRD.ONLY((tandem_repeat_annotation_workflow.AnnotateDeNovo,tandem_repeat_annotation_workflow.AnnotateTRsFromHmmer)),
+                sqla.Column('N',          sqla.TEXT())    : GetValue(default=None).N.ONLY(tandem_repeat_annotation_workflow.AnnotateDeNovo),
                 sqla.Column('M',          sqla.TEXT())    : GetValue(default=None).M
 
                 })
@@ -432,5 +432,4 @@ def _get_requested_walltime_or_none(job):
 # run script
 if __name__ == '__main__':
     import tandem_repeat_annotation_workflow
-    from tandem_repeat_annotation_workflow import AnnotateDeNovo, TandemRepeatAnnotationWorkflow, AnnotateTRsFromHmmer
     TandemRepeatAnnotationWorkflow().run()
