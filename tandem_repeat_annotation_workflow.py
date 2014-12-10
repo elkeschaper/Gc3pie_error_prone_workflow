@@ -222,8 +222,8 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
                 sqla.Column('time_terminated',    sqla.FLOAT())   : GetValue(default=None) .execution.timestamp['TERMINATED'] ,#.ONLY(CodemlApplication), # client-side termination (float) time
                 sqla.Column('time_stopped',       sqla.FLOAT())   : GetValue(default=None) .execution.timestamp['STOPPED']    ,#.ONLY(CodemlApplication), # client-side stop (float) time
                 sqla.Column('error_tag',          sqla.TEXT())    : GetValue(default=None) .error_tag,
-                sqla.Column('TRD',          sqla.TEXT())    : GetValue(default=None).TRD.ONLY((tandem_repeat_annotation_workflow.AnnotateDeNovo,tandem_repeat_annotation_workflow.AnnotateTRsFromHmmer)),
-                sqla.Column('N',          sqla.TEXT())    : GetValue(default=None).N.ONLY((tandem_repeat_annotation_workflow.AnnotateDeNovo,tandem_repeat_annotation_workflow.AnnotateTRsFromHmmer)),
+                sqla.Column('TRD',          sqla.TEXT())    : GetValue(default=None).TRD.ONLY((tandem_repeat_annotation_workflow.AnnotateDeNovo,tandem_repeat_annotation_workflow.AnnotateTRsFromHmmer,tandem_repeat_annotation_workflow.CalculateSignificance)),
+                sqla.Column('N',          sqla.TEXT())    : GetValue(default=None).N.ONLY((tandem_repeat_annotation_workflow.AnnotateDeNovo,tandem_repeat_annotation_workflow.AnnotateTRsFromHmmer,tandem_repeat_annotation_workflow.CalculateSignificance, tandem_repeat_annotation_workflow.MergeAndBasicFilter, tandem_repeat_annotation_workflow.CalculateOverlap, tandem_repeat_annotation_workflow.RefineDenovo)),
                 })
 
     def parse_args(self):
