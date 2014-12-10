@@ -34,6 +34,8 @@ class MyApplication(Application):
         self.c = config[name].copy()
 
         self.TRD = "TEST"
+        self.N = "NTEST"
+        self.M = "MTEST"
 
         # Replace every "%X" in the config with the current value for X, e.g. "3".
         if "param" in kwargs:
@@ -225,7 +227,9 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
                 sqla.Column('time_stopped',       sqla.FLOAT())   : GetValue(default=None) .execution.timestamp['STOPPED']    ,#.ONLY(CodemlApplication), # client-side stop (float) time
                 sqla.Column('error_tag',          sqla.TEXT())    : GetValue(default=None) .error_tag,
                 sqla.Column('TRD',          sqla.TEXT())    : GetValue(default=None).TRD.ONLY((AnnotateDeNovo,AnnotateTRsFromHmmer)),
-                sqla.Column('N',          sqla.TEXT())    : GetValue(default=None).N.ONLY((AnnotateDeNovo,AnnotateTRsFromHmmer))
+                sqla.Column('N',          sqla.TEXT())    : GetValue(default=None).N.ONLY((AnnotateDeNovo)),
+                sqla.Column('M',          sqla.TEXT())    : GetValue(default=None).M
+
                 })
 
     def parse_args(self):
