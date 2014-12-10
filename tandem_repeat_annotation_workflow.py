@@ -33,10 +33,6 @@ class MyApplication(Application):
         config = kwargs["config"]
         self.c = config[name].copy()
 
-        self.TRD = "TEST"
-        self.N = "NTEST"
-        self.M = "MTEST"
-
         # Replace every "%X" in the config with the current value for X, e.g. "3".
         if "param" in kwargs:
             for iC in self.c.keys():
@@ -44,9 +40,9 @@ class MyApplication(Application):
                     self.c[iC] = self.c[iC].replace(param_name, param_value)
 
             for param_name,param_value in kwargs['param'].items():
-                if param_name == 'TRD':
+                if param_name == '$TRD':
                     self.TRD = param_value
-                elif param_name == 'N':
+                elif param_name == '$N':
                     self.N = param_value
 
         kwargs['output_dir'] = self.c['logdir']
@@ -227,9 +223,7 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
                 sqla.Column('time_stopped',       sqla.FLOAT())   : GetValue(default=None) .execution.timestamp['STOPPED']    ,#.ONLY(CodemlApplication), # client-side stop (float) time
                 sqla.Column('error_tag',          sqla.TEXT())    : GetValue(default=None) .error_tag,
                 sqla.Column('TRD',          sqla.TEXT())    : GetValue(default=None).TRD.ONLY((tandem_repeat_annotation_workflow.AnnotateDeNovo,tandem_repeat_annotation_workflow.AnnotateTRsFromHmmer)),
-                sqla.Column('N',          sqla.TEXT())    : GetValue(default=None).N.ONLY(tandem_repeat_annotation_workflow.AnnotateDeNovo),
-                sqla.Column('M',          sqla.TEXT())    : GetValue(default=None).M
-
+                sqla.Column('N',          sqla.TEXT())    : GetValue(default=None).N.ONLY((tandem_repeat_annotation_workflow.AnnotateDeNovo,tandem_repeat_annotation_workflow.AnnotateTRsFromHmmer)),
                 })
 
     def parse_args(self):
