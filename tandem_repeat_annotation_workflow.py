@@ -262,7 +262,6 @@ class MainSequentialFlow(SequentialTaskCollection):
         else:
             self.initial_tasks += [SequencewiseParallelFlow(**kwargs)]
 
-
         SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
 
     def next(self, done):
@@ -374,7 +373,6 @@ class TRDwiseParallelFlow(ParallelTaskCollection):
 
         config = kwargs["config"]
         self.c = config["TRDwise_parallel_flow"]
-        print(self.c)
         self.iSeq = iSeq
         self.kwargs = kwargs
         gc3libs.log.info("\t\tCalling TRDwiseParallelFlow.__init({})".format(self.kwargs))
