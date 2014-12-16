@@ -5,6 +5,7 @@ import os
 import os.path
 import re
 import shlex
+import shutil
 import sqlalchemy as sqla
 import sys
 
@@ -33,6 +34,8 @@ class MyApplication(Application):
         config = kwargs["config"]
         self.c = config[name].copy()
 
+        kwargs['output_dir'] = os.path.join(LOG_PATH, self.persistent_id)
+
         # Replace every "%X" in the config with the current value for X, e.g. "3".
         if "param" in kwargs:
             for iC in self.c.keys():
@@ -44,8 +47,10 @@ class MyApplication(Application):
                     self.TRD = param_value
                 elif param_name == '$N':
                     self.N = param_value
+                # Adapt output_dir to particular file
+                kwargs['output_dir'].replace(param_name, param_value)
 
-        kwargs['output_dir'] = self.c['logdir']
+
 
         gc3libs.Application.__init__(self,
                                      arguments = shlex.split(self.c['script']) + ["-i"] + shlex.split(self.c['input']) +
@@ -72,8 +77,7 @@ class MyApplication(Application):
                 gc3libs.log.info("{} has run successfully to completion.".format(self.__class__.__name__))
                 # Now, clean up
                 # Delete all log files if everything ran smoothly.
-#                os.remove(os.path.join(self.output_dir, self.c['stdout']))
-#                os.remove(os.path.join(self.output_dir, self.c['stderr']))
+                shutil.rmtree(self.output_dir)
             else:
                 gc3libs.log.info("%s has not produced a valid outputfile.", self.__class__.__name__)
                 # Set self.execution.exitcode to a non-zero integer <256 (to indicate an error)
@@ -82,7 +86,7 @@ class MyApplication(Application):
         else:
             gc3libs.log.info("{1} is not successful: self.execution.returncode: {0}".format(self.execution.returncode, self.__class__.__name__))
             # Check if there is stderr.
-            if not os.path.isfile(self.c['stderr']):
+            if not os.path.isfile(os.path.join(self.output_dir, self.stderr)):
                 self.error_tag = ""
             else:
                 # Create a tag from the last line in stderr.
@@ -90,7 +94,6 @@ class MyApplication(Application):
                     for line in fh:
                         pass
                     self.error_tag = line
-            self.execution.exitcode = 42
 
 
 class StopOnError(object):
