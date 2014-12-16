@@ -88,10 +88,11 @@ class MyApplication(Application):
                 self.error_tag = ""
             else:
                 # Create a tag from the last line in stderr.
-                with open(os.path.join(self.output_directory, self.stderr), "r") as fh:
+                with open(os.path.join(self.output_dir, self.stderr), "r") as fh:
                     for line in fh:
                         pass
                     self.error_tag = line
+            self.execution.exitcode = 88
 
 
 class StopOnError(object):
