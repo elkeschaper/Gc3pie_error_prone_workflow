@@ -272,6 +272,7 @@ class MainSequentialFlow(SequentialTaskCollection):
         gc3libs.log.info("\t MainSequentialFlow: Find next task. last_task.execution.exitcode: [%s]" % rc)
         # Stop the execution if last application failed.
         if rc != 0:
+            gc3libs.log.info("\t rc is not 0 [%s]" % type(rc))
             self.execution.rc = rc
             return Run.State.STOPPED
 
