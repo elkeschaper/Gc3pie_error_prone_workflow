@@ -34,7 +34,7 @@ class MyApplication(Application):
         config = kwargs["config"]
         self.c = config[name].copy()
 
-        kwargs['output_dir'] = os.path.join(LOG_PATH, self.persistent_id)
+        kwargs['output_dir'] = self.c['logdir']
 
         # Replace every "%X" in the config with the current value for X, e.g. "3".
         if "param" in kwargs:
