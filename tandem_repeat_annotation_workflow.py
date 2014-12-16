@@ -48,9 +48,7 @@ class MyApplication(Application):
                 elif param_name == '$N':
                     self.N = param_value
                 # Adapt output_dir to particular file
-                kwargs['output_dir'].replace(param_name, param_value)
-
-
+                kwargs['output_dir'] = kwargs['output_dir'].replace(param_name, param_value)
 
         gc3libs.Application.__init__(self,
                                      arguments = shlex.split(self.c['script']) + ["-i"] + shlex.split(self.c['input']) +
