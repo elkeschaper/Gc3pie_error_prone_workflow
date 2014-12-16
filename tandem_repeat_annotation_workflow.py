@@ -269,6 +269,7 @@ class MainSequentialFlow(SequentialTaskCollection):
     def next(self, done):
         last_task = self.tasks[done]
         rc = last_task.execution.exitcode
+        gc3libs.log.info("\t MainSequentialFlow: Find next task. last_task.execution.exitcode: [%s]" % rc)
         # Stop the execution if last application failed.
         if rc != 0:
             self.execution.rc = rc
@@ -276,16 +277,20 @@ class MainSequentialFlow(SequentialTaskCollection):
 
         # Shall we continue with the workflow?
         if last_task != self.tasks[-1]:
+            gc3libs.log.info("\t MainSequentialFlow: Do not add anything")
             # We still have tasks to run in self.tasks, let's consume them before adding new tasks.
             return Run.State.RUNNING
         elif isinstance(last_task, SeqPreparationSequential):
+            gc3libs.log.info("\t MainSequentialFlow: Add SequencewiseParallelFlow")
             # SequencewiseParallelFlow task needs to be initialized using the output from SeqPreparationSequential
             self.add(SequencewiseParallelFlow(**self.kwargs))
             return Run.State.RUNNING
         elif isinstance(last_task, SequencewiseParallelFlow):
+            gc3libs.log.info("\t MainSequentialFlow: Add SerializeAnnotations")
             self.add(SerializeAnnotations(name="serialize_annotations", **self.kwargs))
             return Run.State.RUNNING
         else:
+            gc3libs.log.info("\t MainSequentialFlow: Terminated")
             # Workflow is terminated.
             self.execution.rc = rc
             return Run.State.TERMINATED
