@@ -363,10 +363,10 @@ class SequenceSequential(StopOnError, SequentialTaskCollection):
         param = {"$N": iSeq}
         self.iSeq = iSeq
         #self.initial_tasks = [TRDwiseParallelFlow(iSeq = iSeq, **kwargs),
-                                MergeAndBasicFilter(name = "merge_and_basic_filter", param = param, **kwargs),
-                                CalculateOverlap(name = "calculate_overlap", param = param, **kwargs),
-                                RefineDenovo(name = "refine_denovo", param = param, **kwargs),
-                                ]
+        #                        MergeAndBasicFilter(name = "merge_and_basic_filter", param = param, **kwargs),
+        #                        CalculateOverlap(name = "calculate_overlap", param = param, **kwargs),
+        #                        RefineDenovo(name = "refine_denovo", param = param, **kwargs),
+        #                        ]
 
         # WARNING! TEMPORARY!
         self.initial_tasks = [CalculateOverlap(name = "calculate_overlap", param = param, **kwargs)]
