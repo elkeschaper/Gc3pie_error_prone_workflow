@@ -33,6 +33,7 @@ class MyApplication(Application):
         gc3libs.log.info("Initialising {}".format(self.__class__.__name__))
         config = kwargs["config"]
         self.c = config[name].copy()
+        self.jobname = self.__class__.__name__ # Used by GC3PIE
 
         kwargs['output_dir'] = self.c['logdir']
 
@@ -204,7 +205,7 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
             store_url,
             extra_fields = {
                 # NB: enlarge window to at least 150 columns to read this table properly!
-                sqla.Column('class',              sqla.TEXT())    : (lambda obj: obj.__class__.__name__)                                              , # task class
+                sqla.Column('jobname',              sqla.TEXT())    : (lambda obj: obj.__class__.__name__)   # Former: Class                                           , # task class
                 sqla.Column('executable',         sqla.TEXT())    : GetValue(default=None) .arguments[0]                        ,#.ONLY(CodemlApplication), # program executable
                 sqla.Column('output_path',        sqla.TEXT())    : GetValue(default=None) .output_dir                        ,#.ONLY(CodemlApplication), # fullpath to codeml output directory
                 sqla.Column('cluster',            sqla.TEXT())    : GetValue(default=None) .execution.resource_name           ,#.ONLY(CodemlApplication), # cluster/compute element
