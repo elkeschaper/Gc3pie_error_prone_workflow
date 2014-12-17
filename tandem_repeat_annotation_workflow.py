@@ -205,7 +205,7 @@ class TandemRepeatAnnotationWorkflow(SessionBasedScript):
             store_url,
             extra_fields = {
                 # NB: enlarge window to at least 150 columns to read this table properly!
-                sqla.Column('jobname',              sqla.TEXT())    : (lambda obj: obj.__class__.__name__)   # Former: Class                                           , # task class
+                sqla.Column('jobname',              sqla.TEXT())    : (lambda obj: obj.__class__.__name__),   # Former: Class                                           , # task class
                 sqla.Column('executable',         sqla.TEXT())    : GetValue(default=None) .arguments[0]                        ,#.ONLY(CodemlApplication), # program executable
                 sqla.Column('output_path',        sqla.TEXT())    : GetValue(default=None) .output_dir                        ,#.ONLY(CodemlApplication), # fullpath to codeml output directory
                 sqla.Column('cluster',            sqla.TEXT())    : GetValue(default=None) .execution.resource_name           ,#.ONLY(CodemlApplication), # cluster/compute element
