@@ -52,7 +52,7 @@ class MyApplication(Application):
                 # Adapt output_dir to particular file
                 kwargs['output_dir'] = kwargs['output_dir'].replace(param_name, param_value)
 
-        if required_memory in self.c:
+        if "required_memory" in self.c:
             self.required_memory = int(self.c['required_memory'])*GB,
         else:
             self.required_memory = int(config['required_memory'])*GB,
