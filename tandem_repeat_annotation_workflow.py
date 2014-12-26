@@ -52,6 +52,11 @@ class MyApplication(Application):
                 # Adapt output_dir to particular file
                 kwargs['output_dir'] = kwargs['output_dir'].replace(param_name, param_value)
 
+        if required_memory in self.c:
+            self.required_memory = int(self.c['required_memory'])*GB,
+        else:
+            self.required_memory = int(config['required_memory'])*GB,
+
         gc3libs.Application.__init__(self,
                                      arguments = shlex.split(self.c['script']) + ["-i"] + shlex.split(self.c['input']) +
                                      ["-o"] + shlex.split(self.c['output']) + shlex.split(self.c['extra']),
@@ -60,7 +65,7 @@ class MyApplication(Application):
                                      join = True,
                                      stdout = self.c['stdout'],
                                      stderr = self.c['stderr'],
-                                     required_memory=2*GB,
+                                     required_memory=self.required_memory,
                                      **kwargs
                                      )
 
