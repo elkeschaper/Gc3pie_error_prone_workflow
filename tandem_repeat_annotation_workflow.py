@@ -16,6 +16,7 @@ from gc3libs import Application, Run, Task
 from gc3libs.cmdline import SessionBasedScript, _Script
 from gc3libs.workflow import SequentialTaskCollection, ParallelTaskCollection
 from gc3libs.persistence.accessors import GetValue
+from gc3libs.quantity import kB, MB, GB
 import gc3libs.debug
 import gc3libs.utils
 
@@ -59,6 +60,7 @@ class MyApplication(Application):
                                      join = True,
                                      stdout = self.c['stdout'],
                                      stderr = self.c['stderr'],
+                                     required_memory=2*GB,
                                      **kwargs
                                      )
 
