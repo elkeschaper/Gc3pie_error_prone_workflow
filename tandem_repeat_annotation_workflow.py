@@ -53,9 +53,9 @@ class MyApplication(Application):
                 kwargs['output_dir'] = kwargs['output_dir'].replace(param_name, param_value)
 
         if "required_memory" in self.c:
-            self.required_memory = int(self.c['required_memory'])*GB,
+            self.requested_memory = int(self.c['required_memory'])*GB,
         else:
-            self.required_memory = int(config['required_memory'])*GB,
+            self.requested_memory = int(config['required_memory'])*GB,
 
         gc3libs.Application.__init__(self,
                                      arguments = shlex.split(self.c['script']) + ["-i"] + shlex.split(self.c['input']) +
@@ -65,7 +65,7 @@ class MyApplication(Application):
                                      join = True,
                                      stdout = self.c['stdout'],
                                      stderr = self.c['stderr'],
-                                     required_memory=self.required_memory,
+                                     requested_memory=self.requested_memory,
                                      **kwargs
                                      )
 
