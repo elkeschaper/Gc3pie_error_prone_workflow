@@ -45,7 +45,7 @@ class A(Application):
         # check whether output file exists.
         # otherwise: exitstatus to failure.
 
-        self.execution.state = [TERMINATED, RUNNING, STOPPED, SUBMITTED.]
+        self.execution.state = [TERMINATED, RUNNING, STOPPED, SUBMITTED]
         self.execution.returncode = []
         self.error = last_line_of_log_file
 
