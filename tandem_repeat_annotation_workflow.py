@@ -49,6 +49,8 @@ class MyApplication(Application):
                     self.TRD = param_value
                 elif param_name == '$N':
                     self.N = param_value
+                elif param_name == '$BATCH':
+                    self.batch = param_value
                 # Adapt output_dir to particular file
                 kwargs['output_dir'] = kwargs['output_dir'].replace(param_name, param_value)
 
@@ -331,7 +333,7 @@ class SeqPreparationSequential(StopOnError, SequentialTaskCollection):
         gc3libs.log.info("\t\t\t\tCalling SeqPreparationSequential.__init__ ")
 
         self.initial_tasks = [SplitSequenceFile(name = "split_sequence_file", **kwargs),
-                                CreateAnnotateSequencePickle(name = "create_and_annotate_sequence_pickles", **kwargs)
+                                CreateAnnotateSequencePickleParallelFlow(**kwargs)
                                 ]
 
         SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
@@ -340,6 +342,30 @@ class SeqPreparationSequential(StopOnError, SequentialTaskCollection):
         self.execution.returncode = 0
         gc3libs.log.info("\t\t\t\tSeqPreparationSequential.terminated [%d]" % self.execution.returncode)
 
+
+class CreateAnnotateSequencePickleParallelFlow(ParallelTaskCollection):
+
+    def __init__(self, **kwargs):
+
+        config = kwargs["config"]
+        self.c = config["createannotatesequencepickle_parallel_flow"]
+        self.batchsize = self.s['batchsize']
+
+        lFile = [re.findall(self.c['retag'], i)[0] for i in os.listdir(self.c['input'])]
+
+        self.kwargs = kwargs
+
+        gc3libs.log.info("\t\tCalling SequencewiseParallelFlow.__init({})".format(self.kwargs))
+
+        l = len(lFile)
+        self.tasks = [CreateAnnotateSequencePickle(name = "create_and_annotate_sequence_pickles", param = {'$BATCH': lFile[iBatch:min(iBatch+self.batchsize, l)]}, **kwargs)
+                             for iBatch in range(0,l,self.batchsize)]
+
+        ParallelTaskCollection.__init__(self, self.tasks, **kwargs)
+
+    def terminated(self):
+        self.execution.returncode = 0
+        gc3libs.log.info("\t\tSequencewiseParallelFlow.terminated")
 
 class SequencewiseParallelFlow(ParallelTaskCollection):
 
