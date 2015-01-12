@@ -332,9 +332,15 @@ class SeqPreparationSequential(StopOnError, SequentialTaskCollection):
 
         gc3libs.log.info("\t\t\t\tCalling SeqPreparationSequential.__init__ ")
 
-        self.initial_tasks = [SplitSequenceFile(name = "split_sequence_file", **kwargs),
+        config = kwargs["config"]
+
+        if config["split_sequence_file"]["activated"] == 'True':
+            self.initial_tasks = [SplitSequenceFile(name = "split_sequence_file", **kwargs),
                                 CreateAnnotateSequencePickleParallelFlow(**kwargs)
                                 ]
+        else:
+            self.initial_tasks = [CreateAnnotateSequencePickleParallelFlow(**kwargs)
+                    ]
 
         SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
 
