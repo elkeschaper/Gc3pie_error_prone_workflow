@@ -355,7 +355,7 @@ class CreateAnnotateSequencePickleParallelFlow(ParallelTaskCollection):
 
         config = kwargs["config"]
         self.c = config["createannotatesequencepickle_parallel_flow"]
-        self.batchsize = self.c['batchsize']
+        self.batchsize = int(self.c['batchsize'])
 
         lFile = [re.findall(self.c['retag'], i)[0] for i in os.listdir(self.c['input'])]
 
