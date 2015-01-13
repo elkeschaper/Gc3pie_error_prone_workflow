@@ -364,7 +364,7 @@ class CreateAnnotateSequencePickleParallelFlow(ParallelTaskCollection):
         gc3libs.log.info("\t\tCalling SequencewiseParallelFlow.__init({})".format(self.kwargs))
 
         l = len(lFile)
-        self.tasks = [CreateAnnotateSequencePickle(name = "create_and_annotate_sequence_pickles", param = {'$BATCH': lFile[iBatch:min(iBatch+self.batchsize, l)]}, **kwargs)
+        self.tasks = [CreateAnnotateSequencePickle(name = "create_and_annotate_sequence_pickles", param = {'$BATCH': " ".join(lFile[iBatch:min(iBatch+self.batchsize, l)])}, **kwargs)
                              for iBatch in range(0,l,self.batchsize)]
 
         ParallelTaskCollection.__init__(self, self.tasks, **kwargs)
