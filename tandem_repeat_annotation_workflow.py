@@ -14,7 +14,7 @@ import sys
 import gc3libs
 from gc3libs import Application, Run, Task
 from gc3libs.cmdline import SessionBasedScript, _Script
-from gc3libs.workflow import SequentialTaskCollection, ParallelTaskCollection
+from gc3libs.workflow import RetryableTask, SequentialTaskCollection, ParallelTaskCollection
 from gc3libs.persistence.accessors import GetValue
 from gc3libs.quantity import kB, MB, GB
 import gc3libs.debug
@@ -45,12 +45,8 @@ class MyApplication(Application):
                     self.c[iC] = self.c[iC].replace(param_name, param_value)
 
             for param_name,param_value in kwargs['param'].items():
-                if param_name == '$TRD':
-                    self.TRD = param_value
-                elif param_name == '$N':
+                if param_name == '$N':
                     self.N = param_value
-                elif param_name == '$BATCH':
-                    self.batch = param_value
                 # Adapt output_dir to particular file
                 kwargs['output_dir'] = kwargs['output_dir'].replace(param_name, param_value)
 
@@ -136,49 +132,7 @@ class SplitSequenceFile(MyApplication):
         return True
 
 
-class CreateAnnotateSequencePickle(MyApplication):
-    def is_valid(self, output):
-        return True
-
-
-class CreateHMMPickles(MyApplication):
-
-    def is_valid(self, output):
-        return True
-
-
-class AnnotateTRsFromHmmer(MyApplication):
-
-    def is_valid(self, output):
-        return True
-
-
-class AnnotateDeNovo(MyApplication):
-
-    def is_valid(self, output):
-        return True
-
-
-class CalculateSignificance(MyApplication):
-
-    def is_valid(self, output):
-        return True
-
-
-class MergeAndBasicFilter(MyApplication):
-
-    def is_valid(self, output):
-        return True
-
-
-class CalculateOverlap(MyApplication):
-
-    def is_valid(self, output):
-        return True
-
-
-class RefineDenovo(MyApplication):
-
+class AnnotateTandemRepeats(MyApplication):
     def is_valid(self, output):
         return True
 
@@ -194,7 +148,7 @@ class SerializeAnnotations(MyApplication):
 
 class TandemRepeatAnnotationWorkflow(SessionBasedScript):
     """
-    Test pipeline
+    TandemRepeatAnnotationWorkflow
     """
 
     def __init__(self):
@@ -268,10 +222,8 @@ class MainSequentialFlow(SequentialTaskCollection):
         self.initial_tasks = []
         if config["create_hmm_pickles"]["activated"] == 'True':
             self.initial_tasks = [DataPreparationParallelFlow(**kwargs)]
-        if config["create_and_annotate_sequence_pickles"]["activated"] == 'True':
-            self.initial_tasks += [SeqPreparationSequential(**kwargs)]
         else:
-            self.initial_tasks += [SequencewiseParallelFlow(**kwargs)]
+            self.initial_tasks = [SequencewiseParallelFlow(**kwargs)]
 
         SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
 
@@ -290,7 +242,7 @@ class MainSequentialFlow(SequentialTaskCollection):
             gc3libs.log.info("\t MainSequentialFlow: Do not add anything")
             # We still have tasks to run in self.tasks, let's consume them before adding new tasks.
             return Run.State.RUNNING
-        elif isinstance(last_task, SeqPreparationSequential):
+        elif isinstance(last_task, DataPreparationParallelFlow):
             gc3libs.log.info("\t MainSequentialFlow: Add SequencewiseParallelFlow")
             # SequencewiseParallelFlow task needs to be initialized using the output from SeqPreparationSequential
             self.add(SequencewiseParallelFlow(**self.kwargs))
@@ -318,61 +270,8 @@ class DataPreparationParallelFlow(ParallelTaskCollection):
         self.kwargs = kwargs
         gc3libs.log.info("\t\tCalling DataPreparationParallelFlow.__init({})".format(self.kwargs))
 
-        self.tasks = [SeqPreparationSequential(**kwargs),CreateHMMPickles(name = 'create_hmm_pickles', **kwargs)]
+        # Needs to be coded
 
-        ParallelTaskCollection.__init__(self, self.tasks, **kwargs)
-
-    def terminated(self):
-        self.execution.returncode = 0
-        gc3libs.log.info("\t\tDataPreparationParallelFlow.terminated")
-
-
-class SeqPreparationSequential(StopOnError, SequentialTaskCollection):
-    def __init__(self, **kwargs):
-
-        gc3libs.log.info("\t\t\t\tCalling SeqPreparationSequential.__init__ ")
-
-        config = kwargs["config"]
-
-        if config["split_sequence_file"]["activated"] == 'True':
-            self.initial_tasks = [SplitSequenceFile(name = "split_sequence_file", **kwargs),
-                                CreateAnnotateSequencePickleParallelFlow(**kwargs)
-                                ]
-        else:
-            self.initial_tasks = [CreateAnnotateSequencePickleParallelFlow(**kwargs)
-                    ]
-
-        SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
-
-    def terminated(self):
-        self.execution.returncode = 0
-        gc3libs.log.info("\t\t\t\tSeqPreparationSequential.terminated [%d]" % self.execution.returncode)
-
-
-class CreateAnnotateSequencePickleParallelFlow(ParallelTaskCollection):
-
-    def __init__(self, **kwargs):
-
-        config = kwargs["config"]
-        self.c = config["createannotatesequencepickle_parallel_flow"]
-        self.batchsize = int(self.c['batchsize'])
-
-        #lFile = [re.findall(self.c['retag'], i)[0] for i in os.listdir(self.c['input'])] # Extract file ID
-        lFile = list(os.listdir(self.c['input']))
-
-        self.kwargs = kwargs
-
-        gc3libs.log.info("\t\tCalling SequencewiseParallelFlow.__init({})".format(self.kwargs))
-
-        l = len(lFile)
-        self.tasks = [CreateAnnotateSequencePickle(name = "create_and_annotate_sequence_pickles", param = {'$BATCH': " ".join(lFile[iBatch:min(iBatch+self.batchsize, l)])}, **kwargs)
-                             for iBatch in range(0,l,self.batchsize)]
-
-        ParallelTaskCollection.__init__(self, self.tasks, **kwargs)
-
-    def terminated(self):
-        self.execution.returncode = 0
-        gc3libs.log.info("\t\tSequencewiseParallelFlow.terminated")
 
 class SequencewiseParallelFlow(ParallelTaskCollection):
 
@@ -383,83 +282,19 @@ class SequencewiseParallelFlow(ParallelTaskCollection):
 
         # TODO: Find all files in dir and create self.lSeq! Warning! Should be done once the
         # Tasks before are finished.
-        self.lSeq = [re.findall(self.c['retag'], i)[0] for i in os.listdir(self.c['input'])]
+        #self.lSeq = [re.findall(self.c['retag'], i)[0] for i in os.listdir(self.c['input'])]
+        self.lSeq = [i for i in os.listdir(self.c['input']) if not i.endswith("fai")]
         self.kwargs = kwargs
 
         gc3libs.log.info("\t\tCalling SequencewiseParallelFlow.__init({})".format(self.kwargs))
 
-        self.tasks = [SequenceSequential(iSeq = iSeq, **kwargs) for iSeq in self.lSeq]
+        self.tasks = [AnnotateTandemRepeats(N = iSeq, **kwargs) for iSeq in self.lSeq]
 
         ParallelTaskCollection.__init__(self, self.tasks, **kwargs)
 
     def terminated(self):
         self.execution.returncode = 0
         gc3libs.log.info("\t\tSequencewiseParallelFlow.terminated")
-
-
-class SequenceSequential(StopOnError, SequentialTaskCollection):
-    def __init__(self, iSeq, **kwargs):
-
-        param = {"$N": iSeq}
-        self.iSeq = iSeq
-        self.initial_tasks = [TRDwiseParallelFlow(iSeq = iSeq, **kwargs),
-                                MergeAndBasicFilter(name = "merge_and_basic_filter", param = param, **kwargs),
-                                CalculateOverlap(name = "calculate_overlap", param = param, **kwargs),
-                                RefineDenovo(name = "refine_denovo", param = param, **kwargs),
-                                ]
-
-        SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
-
-    def terminated(self):
-        self.execution.returncode = 0
-        gc3libs.log.info("\t\t\t\tTRDSequential.terminated [%d]" % self.execution.returncode)
-
-
-class TRDwiseParallelFlow(ParallelTaskCollection):
-
-    def __init__(self, iSeq, **kwargs):
-
-        config = kwargs["config"]
-        self.c = config["TRDwise_parallel_flow"]
-        self.iSeq = iSeq
-        self.kwargs = kwargs
-        gc3libs.log.info("\t\tCalling TRDwiseParallelFlow.__init({})".format(self.kwargs))
-
-        self.tasks = [TRDSequential(n = self.iSeq, TRD = iTRD, TRD_type = iType, **kwargs) for iTRD, iType in self.c.items()]
-
-        ParallelTaskCollection.__init__(self, self.tasks, **kwargs)
-
-    def terminated(self):
-        self.execution.returncode = 0
-        gc3libs.log.info("\t\tTRDwiseParallelFlow.terminated")
-
-
-class TRDSequential(StopOnError, SequentialTaskCollection):
-    @gc3libs.debug.trace
-    def __init__(self, n, TRD, TRD_type, **kwargs):
-
-        self.param = {"$N": n, "$TRD": TRD}
-        self.n = n
-        self.TRD = TRD
-        self.TRD_type = TRD_type
-        gc3libs.log.info(TRD_type)
-
-        if self.TRD_type == 'Hmmer':
-            self.initial_tasks = [AnnotateTRsFromHmmer(name = "annotate_TRs_from_hmmer", param = self.param, **kwargs),
-                                CalculateSignificance(name = "calculate_significance", param = self.param, **kwargs),
-                                ]
-        elif self.TRD_type == 'deNovo':
-                    self.initial_tasks = [AnnotateDeNovo(name = "annotate_de_novo", param = self.param, **kwargs),
-                                CalculateSignificance(name = "calculate_significance", param = self.param, **kwargs),
-                                ]
-        else:
-            # FIXME!
-            raise("TRD_type not known: {}".format(self.TRD_type))
-        SequentialTaskCollection.__init__(self, self.initial_tasks, **kwargs)
-
-    def terminated(self):
-        self.execution.returncode = 0
-        gc3libs.log.info("\t\t\t\tTRDSequential.terminated [%d]" % self.execution.returncode)
 
 
 def _get_requested_walltime_or_none(job):
