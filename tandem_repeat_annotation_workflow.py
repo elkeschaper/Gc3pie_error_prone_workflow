@@ -219,7 +219,7 @@ class MainSequentialFlow(SequentialTaskCollection):
         gc3libs.log.info("\t Calling MainSequentialFlow.__init({})".format("<No parameters>"))
 
         self.initial_tasks = []
-        if config["create_hmm_pickles"]["activated"] == 'True':
+        if config["split_sequence_file"]["activated"] == 'True':
             self.initial_tasks = [DataPreparationParallelFlow(**kwargs)]
         else:
             self.initial_tasks = [SequencewiseParallelFlow(**kwargs)]
@@ -277,7 +277,7 @@ class SequencewiseParallelFlow(ParallelTaskCollection):
     def __init__(self, **kwargs):
 
         config = kwargs["config"]
-        self.c = config["sequencewise_parallel_flow"]
+        self.c = config["annotate_tandem_repeats"]
 
         # TODO: Find all files in dir and create self.lSeq! Warning! Should be done once the
         # Tasks before are finished.
