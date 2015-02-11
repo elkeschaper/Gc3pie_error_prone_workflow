@@ -287,6 +287,8 @@ class SequencewiseParallelFlow(ParallelTaskCollection):
 
         gc3libs.log.info("\t\tCalling SequencewiseParallelFlow.__init({})".format(self.kwargs))
 
+        # Remove this later on :)
+        self.lSeq = self.lSeq[:5]
         self.tasks = [AnnotateTandemRepeats(name = "annotate_tandem_repeats", N = iSeq, **kwargs) for iSeq in self.lSeq]
 
         ParallelTaskCollection.__init__(self, self.tasks, **kwargs)
